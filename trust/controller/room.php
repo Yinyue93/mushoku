@@ -61,6 +61,10 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 	public function main()
 	{
+        if (Dura::post('logout')) {
+            $this->_logout();
+        }
+        
 		if ( Dura::$action == 'ajax' )
 		{
 			$this->_ajax();
@@ -103,6 +107,7 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 		elseif ( Dura::post('message') )
 		{
+            die('test');
 			$this->_message();
 		}
 		elseif ( isset($_POST['room_name']) && isset($_POST['room_language']) )
@@ -1343,6 +1348,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 				unset($this->roomModel['whispers'][$key]);
 			}
 		}
-		$this->roomModel['whispers'] = array_values($this->roomModel['whispers']);
+        
+        if ( !empty($this->roomModel['whispers'])) {
+            $this->roomModel['whispers'] = array_values($this->roomModel['whispers']);
+        }
 	}
 }

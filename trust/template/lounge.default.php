@@ -94,3 +94,8 @@
 <div class="clear"></div>
 
 </div>
+<script>
+  setTimeout(function() {
+    window.location.reload();
+  }, 2000);
+</script>

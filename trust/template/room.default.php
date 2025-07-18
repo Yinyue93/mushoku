@@ -14,7 +14,9 @@
 	<li class="sound">&nbsp;</li>
 	<li class="member">&nbsp;</li>
 	<li class="animation">&nbsp;</li>
-	<li class="logout"><input type="submit" name="logout" value="<?php e(t("EXIT")) ?>" /></li>
+	<li class="logout">
+        <button id="logout_btn" ><?php e(t("EXIT")) ?></button>
+    </li>
 </ul>
 <h2><span id="room_name"><?php e($dura['room']['name']) ?></span> (<span id="room_total"><?php e(count($dura['room']['users'])) ?></span>/<span id="room_capacity"><?php e($dura['room']['limit']) ?></span>)</h2>
 <div class="message_area">
@@ -167,6 +169,29 @@
 </div><!-- /#murmurs_box -->
 
 </div><!-- /#whisper_box -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var logoutBtn = document.getElementById('logout_btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/room', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        window.location.reload();
+                    } else {
+                        alert('Logout failed.');
+                    }
+                }
+            };
+            xhr.send('logout=1');
+        });
+    }
+});
+</script>
 
 <div id="pagetop">
 	<a href="#"><img src="<?php e(DURA_URL) ?>/css/pagetop.gif" alt="JUMP" /></a>
