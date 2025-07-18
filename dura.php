@@ -177,6 +177,10 @@ class Dura
 
 	public static function escapeHtml($string)
 	{
+        if ($string === null) {
+            return $string;
+        }
+
 		return htmlspecialchars($string, ENT_QUOTES);
 	}
 
@@ -216,14 +220,23 @@ class Dura
 		$spaces[] = '/\xE1\x9A\x80/'; // U+1680 OGHAM SPACE MARK
 		$spaces[] = '/\xE1\xA0\x8E/'; // U+180E MONGOLIAN VOWEL SEPARATOR
 
-		$string = preg_replace($spaces, ' ', $string);
+
+        if ($string !== null) {
+            $string = preg_replace($spaces, ' ', $string);
+        }
 
 		if ( !$skipCRLF )
 		{
-			$string = preg_replace('/[\r\n]+/', ' ', $string);
+            if ($string !== null) {
+                $string = preg_replace('/[\r\n]+/', ' ', $string);
+            }
 		}
 
-		return preg_replace('/\s+/u', ' ', $string);
+        if ($string !== null) {
+            return preg_replace('/\s+/u', ' ', $string);
+        }
+
+        return $string;
 	}
 
 	/*
@@ -369,6 +382,11 @@ class Dura
 	public static function trim($string, $skipCRLF = true)
 	{
 		$string = self::normalizeSpace($string, $skipCRLF);
+
+        if ($string === null) {
+            return $string;
+        }
+
 		return preg_replace("/(^\s+)|(\s+$)/u", '', trim($string));
 	}
 
