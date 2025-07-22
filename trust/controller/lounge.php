@@ -23,6 +23,59 @@ class Dura_Controller_Lounge extends Dura_Abstract_Controller
 	{
 		$this->_validateUser();
 
+		// Handle AJAX getLounge request
+		if (isset($_GET['getLounge'])) {
+            $roomHandler = new Dura_Model_RoomHandler;
+            $roomModels = $roomHandler->loadAll();
+            $rooms = array();
+            $roomExpire = time() - DURA_CHAT_ROOM_EXPIRE;
+            $activeUser = 0;
+            foreach ($roomModels as $id => $roomModel) {
+                if ($roomModel['update'] < $roomExpire && !$roomModel['permanent']) {
+                    $roomHandler->delete($id);
+                    continue;
+                }
+                // Only keep active users
+                $roomModel['users'] = array_filter(
+                    isset($roomModel['users']) ? $roomModel['users'] : array(),
+                    function($user) use ($roomExpire) {
+                        return isset($user['update']) && $user['update'] >= $roomExpire;
+                    }
+                );
+                $roomModel['users'] = array_values($roomModel['users']);
+                $totalUsers = count($roomModel['users']);
+                $activeUser += $totalUsers;
+                // Prepare users array for frontend (id, name, icon)
+                $usersArr = array();
+                foreach ($roomModel['users'] as $user) {
+                    $usersArr[] = array(
+                        'id' => isset($user['id']) ? $user['id'] : '',
+                        'name' => isset($user['name']) ? $user['name'] : '',
+                        'icon' => isset($user['icon']) ? Dura_Class_Icon::getIconUrl($user['icon']) : ''
+                    );
+                }
+                $rooms[] = array(
+                    'id' => $id,
+                    'name' => isset($roomModel['name']) ? $roomModel['name'] : '',
+                    'users' => $usersArr,
+                    'total' => $totalUsers,
+                    'limit' => isset($roomModel['limit']) ? $roomModel['limit'] : 0,
+                    'mark' => isset($roomModel['mark']) ? $roomModel['mark'] : '',
+                    'password' => isset($roomModel['password']) ? $roomModel['password'] : '',
+                    'color' => isset($roomModel['color']) ? $roomModel['color'] : '',
+                    'host' => isset($roomModel['host']) ? $roomModel['host'] : '',
+                    'permanent' => isset($roomModel['permanent']) ? $roomModel['permanent'] : false,
+                    'unavailable' => isset($roomModel['unavailable']) ? $roomModel['unavailable'] : false
+                );
+            }
+            header('Content-Type: application/json');
+            echo json_encode([
+                'online_users' => $activeUser,
+                'rooms' => $rooms
+            ]);
+            exit;
+        }
+
 		$this->_default();
 	}
 
@@ -284,6 +337,14 @@ class Dura_Controller_Lounge extends Dura_Abstract_Controller
 				unset($roomModel['whispers'][$key]);
 			}
 		}
-		$roomModel['whispers'] = array_values($roomModel['whispers']);
+
+        if ( !empty($roomModel['whispers']) )
+        {
+            $roomModel['whispers'] = array_values($roomModel['whispers']);
+        }
+        else
+        {
+            $roomModel['whispers'] = [];
+        }
 	}
 }

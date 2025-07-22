@@ -11,7 +11,32 @@
     "mark": "",
     "color": "",
     "users": [],
-    "talks": [],
+    "talks": [
+        {
+            "id": "d93be772f759d31600d573ddfeae1a4c",
+            "uid": "",
+            "name": "test1",
+            "message": "{1} logged in.",
+            "icon": "",
+            "time": 1752880436.132921
+        },
+        {
+            "id": "cf60cc048447545c2e11c0f91e47ce7a",
+            "uid": "",
+            "name": "test1",
+            "message": "{1} logged out.",
+            "icon": "",
+            "time": 1752880438.608471
+        },
+        {
+            "id": "0536c6e934f234e7b9a6f2ca0b526f6e",
+            "uid": "",
+            "name": "",
+            "message": "No users in chat.",
+            "icon": "",
+            "time": 1752880438.608474
+        }
+    ],
     "bans": null,
     "whispers": null
 }

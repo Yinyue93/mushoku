@@ -397,11 +397,21 @@ class Dura
 
 	public static function checkIPVersion($ip)
 	{
+        if ( !self::validIP($ip) )
+        {
+            return 0; // Invalid IP
+        }
+
 		return strpos($ip, ':') === false ? 4 : 6;
 	}
 
 	public static function maskIP($ip)
 	{
+        if ( !self::validIP($ip) )
+        {
+            return $ip; // Invalid IP
+        }
+        
 		if ( self::checkIPVersion($ip) == 6 )
 		{
 			return preg_replace('/:([0-9A-Fa-f]){4}/', ':XXXX', $ip);

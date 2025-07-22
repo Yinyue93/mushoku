@@ -107,7 +107,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 		elseif ( Dura::post('message') )
 		{
-            die('test');
 			$this->_message();
 		}
 		elseif ( isset($_POST['room_name']) && isset($_POST['room_language']) )
@@ -236,6 +235,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 
 		$this->roomModel['users'][] = $user;
+
+		// Update room timestamp to prevent expiration when user joins
+		$this->roomModel['update'] = time();
 
 		$this->_npcLogin($userName);
 
@@ -448,6 +450,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 		unset($user);
 
+		// Update room timestamp to prevent expiration when there's activity
+		$this->roomModel['update'] = time();
+
 		$this->_weepTalk();
 
 		if ( !empty($this->roomModel['whispers']) )
@@ -551,10 +556,12 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->roomModel['error'] = 0;
 
-		foreach ( $this->roomModel['bans'] as &$ban )
-		{
-			$ban['ip'] = Dura::maskIP($ban['ip']);
-		}
+        if (!empty($this->roomModel['bans'])) {
+            foreach ( $this->roomModel['bans'] as &$ban )
+		    {
+		    	$ban['ip'] = Dura::maskIP($ban['ip']);
+		    }
+        }
 		unset($ban);
 
 		foreach ( $this->roomModel['talks'] as &$talk )
@@ -825,6 +832,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->roomModel['name'] = $roomName;
 		$this->roomModel['language'] = $roomLanguage;
 
+		// Update room timestamp to prevent expiration when settings are changed
+		$this->roomModel['update'] = time();
+
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Room detail is modified."));
@@ -888,6 +898,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->roomModel['limit'] = $roomLimit;
 
+		// Update room timestamp to prevent expiration when settings are changed
+		$this->roomModel['update'] = time();
+
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Room limit is modified."));
@@ -909,6 +922,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 
 		$this->roomModel['password'] = $roomPassword;
+
+		// Update room timestamp to prevent expiration when settings are changed
+		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1000,6 +1016,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 			die(t("IP not found."));
 		}
 
+		// Update room timestamp to prevent expiration when admin actions are performed
+		$this->roomModel['update'] = time();
+
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Removed {1}.", Dura::maskIP($blockIP)));
@@ -1046,6 +1065,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->_npcNewHost($nextHost);
 
 		$this->_weepTalk();
+
+		// Update room timestamp to prevent expiration when admin actions are performed
+		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1115,6 +1137,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->_weepTalk();
 
+		// Update room timestamp to prevent expiration when admin actions are performed
+		$this->roomModel['update'] = time();
+
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Banned {1}.", Dura::decodeHtml($userName)));
@@ -1159,6 +1184,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->_npcDisconnect($userName);
 
 		$this->_weepTalk();
+
+		// Update room timestamp to prevent expiration when admin actions are performed
+		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1340,16 +1368,16 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		{
 			$userId = Dura::user()->getId();
 		}
-
-		foreach ( $this->roomModel['whispers'] as $key => $whisper )
-		{
-			if ( $whisper['uid'] == $userId || $whisper['rid'] == $userId )
-			{
-				unset($this->roomModel['whispers'][$key]);
-			}
-		}
         
         if ( !empty($this->roomModel['whispers'])) {
+            foreach ( $this->roomModel['whispers'] as $key => $whisper )
+		    {
+		    	if ( $whisper['uid'] == $userId || $whisper['rid'] == $userId )
+		    	{
+		    		unset($this->roomModel['whispers'][$key]);
+		    	}
+		    }
+
             $this->roomModel['whispers'] = array_values($this->roomModel['whispers']);
         }
 	}
