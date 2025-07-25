@@ -606,149 +606,105 @@ jQuery(function($)
 		$.each(data.whispers, writeMessage);
 	}
 
-	var writeMessage = function()
-	{
-		var id = this.id;
+    var writeMessage = function () {
+        var id = this.id;
 
-		if ( $("#"+id).length > 0 )
-		{
-			return;
-		}
+        if ($("#" + id).length > 0) return;
 
-		var uid     = this.uid;
-		var name    = this.name;
-		var message = this.message;
-		var icon    = this.icon;
-		var time    = this.time;
-		var code    = this.code;
+        var uid = this.uid;
+        var name = escapeHTML(this.name);
+        var message = escapeHTML(this.message);
+        var icon = this.icon;
+        var time = this.time;
+        var code = this.code;
+        var image = this.image || null;
+        var rid = this.hasOwnProperty('rid') ? this.rid : null;
+        var options = {};
+        var isNotifyMessage = true;
 
-		if ( this.hasOwnProperty('rid') ) var rid = this.rid;
+        // --- IMAGE HANDLING --- //
+        if (image) {
+            window.location.reload();
+        }
 
-		var options         = {};
-		var isNotifyMessage = true;
+        // --- (rest of original writeMessage function as before) ---
+        // System message
+        if (uid == 0 || uid == '') {
+            var content = '<div class="talk system" id="' + id + '">' + message + '</div>';
+            talksElement.prepend(content);
+            if (isUseMention) isNotifyMessage = false;
+            writeChatLog('SYSTEM', message);
+            options = { title: "SYSTEM" };
+        }
+        // Whisper to me
+        else if (uid != userId) {
+            if (rid == userId) {
+                if (!isUseWhisper && !isLock) toggleWhisper();
+                if (isLock) isNotifyMessage = false;
+                var content = '<dl class="talk ' + icon + '" id="' + id + '">';
+                content += '<dt' + (code.length > 0 ? ' title="' + code + '"' : '') + '>' + name + '</dt>';
+                content += '<dd title="' + time + '"><div class="bubble">';
+                content += '<p class="body">' + message + '</p>';
+                content += '<span title="from" class="hide">' + uid + '</span>';
+                content += '<span title="to" class="hide">' + rid + '</span>';
+                content += '</div></dd></dl>';
+                dropListElement.val(uid);
+                murmursElement.prepend(content);
+                toggleWhisperMessage();
+                if (!isUseWhisper && isLock) {
+                    $("li.whisper").removeClass("whisper_off");
+                    $("li.whisper").addClass("whisper_notify");
+                    $.each($("#murmurs_box .bubble .body:first").parent(), addTail);
+                    $.each($("#murmurs_box .bubble .body:first"), roundBalloon);
+                    $("#murmurs_box dl.talk:first dt").click(addUserNameToTextarea);
+                } else {
+                    effectBalloon(true);
+                }
+                $.each($("#murmurs_box .bubble .body:first"), shadowBalloon);
+                $("#murmurs_box .talk dt:first").tipTip({ maxWidth: "auto", edgeOffset: 5, defaultPosition: "top" });
+                writeChatLog('[P] ' + name, message);
+                options = { iconUrl: duraUrl + "/css/whisper/" + icon + ".png" };
+            }
+            // Normal public message from others
+            else if (rid == null) {
+                var content = '<dl class="talk ' + icon + '" id="' + id + '">';
+                content += '<dt' + (code.length > 0 ? ' title="' + code + '"' : '') + '>' + name + '</dt>';
+                content += '<dd title="' + time + '"><div class="bubble">';
+                content += '<p class="body">' + message + '</p>';
+                content += '</div></dd></dl>';
+                talksElement.prepend(content);
+                effectBalloon(false);
+                $.each($("#talks_box .bubble .body:first"), shadowBalloon);
+                $("#talks_box .talk dt:first").tipTip({ maxWidth: "auto", edgeOffset: 5, defaultPosition: "top" });
+                writeChatLog(name, message);
+                options = { iconUrl: duraUrl + "/css/icon/" + icon + ".png" };
+            } else {
+                return;
+            }
+            if (unescapeHTML(message).indexOf('@' + userName) < 0 && isUseMention) {
+                isNotifyMessage = false;
+            }
+        }
+        // My own message: skip (already displayed by writeSelfMessage)
+        else {
+            return;
+        }
 
-		name    = escapeHTML(name);
-		message = escapeHTML(message);
+        if (!isWindowActive && isUseNotification && isNotifyMessage) {
+            notificationUID = GUID();
+            var defaults = {
+                title: unescapeHTML(name),
+                body: unescapeHTML(message),
+                tag: notificationUID,
+                timeout: 10000,
+                onclick: function () { window.focus(); }
+            };
+            options = $.extend({}, defaults, options);
+            $.notification(options);
+        }
+        weepMessages();
+    };
 
-		if ( uid == 0 || uid == '' )
-		{
-			var content = '<div class="talk system" id="'+id+'">'+message+'</div>';
-			talksElement.prepend(content);
-
-			if ( isUseMention )
-			{
-				isNotifyMessage = false;
-			}
-
-			writeChatLog('SYSTEM', message);
-
-			options = {
-				title: "SYSTEM"
-			};
-		}
-		else if ( uid != userId )
-		{
-			if ( rid == userId )
-			{
-				if ( !isUseWhisper && !isLock )
-				{
-					toggleWhisper();
-				}
-
-				if ( isLock )
-				{
-					isNotifyMessage = false;
-				}
-
-				var content = '<dl class="talk '+icon+'" id="'+id+'">';
-				content += '<dt'+( code.length > 0 ? ' title="'+code+'"' : '' )+'>'+name+'</dt>';
-				content += '<dd title="'+time+'"><div class="bubble">';
-				content += '<p class="body">'+message+'</p>';
-				content += '<span title="from" class="hide">'+uid+'</span>';
-				content += '<span title="to" class="hide">'+rid+'</span>';
-				content += '</div></dd></dl>';
-				dropListElement.val(uid)
-				murmursElement.prepend(content);
-				toggleWhisperMessage();
-				if ( !isUseWhisper && isLock )
-				{
-					$("li.whisper").removeClass("whisper_off");
-					$("li.whisper").addClass("whisper_notify");
-
-					$.each($("#murmurs_box .bubble .body:first").parent(), addTail);
-					$.each($("#murmurs_box .bubble .body:first"), roundBalloon);
-					$("#murmurs_box dl.talk:first dt").click(addUserNameToTextarea);
-				}
-				else
-				{
-					effectBalloon(true);
-				}
-
-				$.each($("#murmurs_box .bubble .body:first"), shadowBalloon);
-				$("#murmurs_box .talk dt:first").tipTip({maxWidth: "auto", edgeOffset: 5, defaultPosition: "top"});
-
-				writeChatLog('[P] ' + name, message);
-
-				options = {
-					iconUrl: duraUrl+"/css/whisper/"+icon+".png"
-				};
-			}
-			else if ( rid == null )
-			{
-				var content = '<dl class="talk '+icon+'" id="'+id+'">';
-				content += '<dt'+( code.length > 0 ? ' title="'+code+'"' : '' )+'>'+name+'</dt>';
-				content += '<dd title="'+time+'"><div class="bubble">';
-				content += '<p class="body">'+message+'</p>';
-				content += '</div></dd></dl>';
-				talksElement.prepend(content);
-				effectBalloon(false);
-
-				$.each($("#talks_box .bubble .body:first"), shadowBalloon);
-				$("#talks_box .talk dt:first").tipTip({maxWidth: "auto", edgeOffset: 5, defaultPosition: "top"});
-
-				writeChatLog(name, message);
-
-				options = {
-					iconUrl: duraUrl+"/css/icon/"+icon+".png"
-				};
-			}
-			else
-			{
-				return;
-			}
-
-			if ( unescapeHTML(message).indexOf('@' + userName) < 0 && isUseMention )
-			{
-				isNotifyMessage = false;
-			}
-		}
-		else
-		{
-			return;
-		}
-
-		if ( !isWindowActive && isUseNotification && isNotifyMessage )
-		{
-			notificationUID = GUID();
-
-			var defaults = {
-				title: unescapeHTML(name),
-				body: unescapeHTML(message),
-				tag: notificationUID,
-				timeout: 10000,
-				onclick: function()
-				{
-					window.focus();
-				}
-			};
-
-			options = $.extend({}, defaults, options);
-
-			$.notification(options);
-		}
-
-		weepMessages();
-	}
 
 	var writeUserList = function(data)
 	{
@@ -1821,4 +1777,5 @@ jQuery(function($)
 	}
 
 	construct();
+
 });

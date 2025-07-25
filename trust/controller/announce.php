@@ -78,9 +78,6 @@ class Dura_Controller_Announce extends Dura_Abstract_Controller
 			}
 			unset($user);
 
-			// Update room timestamp to prevent expiration when admin announces
-			$roomModel['update'] = time();
-
 			while ( count($roomModel['talks']) > DURA_LOG_LIMIT )
 			{
 				array_shift($roomModel['talks']);

@@ -61,10 +61,15 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 	public function main()
 	{
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_room_image'])) {
+            Dura_Controller_Room::handleImageUpload();
+            exit;
+        }
+
         if (Dura::post('logout')) {
             $this->_logout();
         }
-        
+
 		if ( Dura::$action == 'ajax' )
 		{
 			$this->_ajax();
@@ -235,9 +240,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 
 		$this->roomModel['users'][] = $user;
-
-		// Update room timestamp to prevent expiration when user joins
-		$this->roomModel['update'] = time();
 
 		$this->_npcLogin($userName);
 
@@ -449,9 +451,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 			}
 		}
 		unset($user);
-
-		// Update room timestamp to prevent expiration when there's activity
-		$this->roomModel['update'] = time();
 
 		$this->_weepTalk();
 
@@ -832,9 +831,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->roomModel['name'] = $roomName;
 		$this->roomModel['language'] = $roomLanguage;
 
-		// Update room timestamp to prevent expiration when settings are changed
-		$this->roomModel['update'] = time();
-
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Room detail is modified."));
@@ -898,9 +894,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->roomModel['limit'] = $roomLimit;
 
-		// Update room timestamp to prevent expiration when settings are changed
-		$this->roomModel['update'] = time();
-
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Room limit is modified."));
@@ -922,9 +915,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 
 		$this->roomModel['password'] = $roomPassword;
-
-		// Update room timestamp to prevent expiration when settings are changed
-		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1016,9 +1006,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 			die(t("IP not found."));
 		}
 
-		// Update room timestamp to prevent expiration when admin actions are performed
-		$this->roomModel['update'] = time();
-
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Removed {1}.", Dura::maskIP($blockIP)));
@@ -1065,9 +1052,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->_npcNewHost($nextHost);
 
 		$this->_weepTalk();
-
-		// Update room timestamp to prevent expiration when admin actions are performed
-		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1137,9 +1121,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->_weepTalk();
 
-		// Update room timestamp to prevent expiration when admin actions are performed
-		$this->roomModel['update'] = time();
-
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		die(t("Banned {1}.", Dura::decodeHtml($userName)));
@@ -1184,9 +1165,6 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		$this->_npcDisconnect($userName);
 
 		$this->_weepTalk();
-
-		// Update room timestamp to prevent expiration when admin actions are performed
-		$this->roomModel['update'] = time();
 
 		$this->roomHandler->save($this->id, $this->roomModel);
 
@@ -1381,4 +1359,88 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
             $this->roomModel['whispers'] = array_values($this->roomModel['whispers']);
         }
 	}
+
+    public static function handleImageUpload()
+    {
+        // Make sure user is logged in and room session exists
+        if (!Dura_Class_RoomSession::isCreated()) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Not logged in']);
+            return;
+        }
+
+        $roomId = Dura_Class_RoomSession::get('id');
+        if (!$roomId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No room']);
+            return;
+        }
+
+        // Handle file upload
+        if (
+            empty($_FILES['image']) ||
+            $_FILES['image']['error'] !== UPLOAD_ERR_OK
+        ) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No image uploaded']);
+            return;
+        }
+
+        $file = $_FILES['image'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        if (!in_array($ext, $allowed)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Unsupported file type']);
+            return;
+        }
+
+        // Prevent huge files
+        if ($file['size'] > 3 * 1024 * 1024) { // 3MB max
+            http_response_code(400);
+            echo json_encode(['error' => 'File too large']);
+            return;
+        }
+
+        // Save file to uploads/room_{roomId}/unique_name.ext
+        $dir = __DIR__ . '/../../uploads/room_' . $roomId;
+        if (!is_dir($dir)) mkdir($dir, 0777, true);
+
+        $filename = uniqid('img_', true) . '.' . $ext;
+        $filepath = $dir . '/' . $filename;
+        $publicPath = '/uploads/room_' . $roomId . '/' . $filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to save file']);
+            return;
+        }
+
+        // Save as a message in the room
+        $roomHandler = new Dura_Model_RoomHandler;
+        $roomModel   = $roomHandler->load($roomId);
+
+        $talk = array();
+        $talk['id']      = md5(microtime().mt_rand());
+        $talk['uid']     = Dura::user()->getId();
+        $talk['name']    = Dura::user()->getName();
+        $talk['message'] = '[image]'; // Placeholder or optional text
+        $talk['icon']    = Dura::user()->getIcon();
+        $talk['time']    = microtime(true);
+        $talk['code']    = Dura::user()->getCode();
+        $talk['image']   = $publicPath; // *** <<--- THIS is the image URL
+
+        $roomModel['talks'][] = $talk;
+        // Prune old talks if needed
+        while (count($roomModel['talks']) > DURA_LOG_LIMIT) array_shift($roomModel['talks']);
+
+        $roomHandler->save($roomId, $roomModel);
+
+        echo json_encode([
+            'success' => true,
+            'url'     => $publicPath,
+            'id'      => $talk['id'],
+        ]);
+    }
+
 }

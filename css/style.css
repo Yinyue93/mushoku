@@ -267,7 +267,8 @@ ul.menu {
 	ul.menu li.mention,
 	ul.menu li.invite,
 	ul.menu li.notification,
-	ul.menu li.chatlog {
+	ul.menu li.chatlog,
+	ul.menu li.image {
 		width: 15px;
 		display: none;
 	}
@@ -350,6 +351,10 @@ ul.menu {
 
 	ul.menu li.chatlog {
 		background: transparent url('chatlog.png') left top no-repeat;
+	}
+
+	ul.menu li.image {
+		background: transparent url('image.png') left top no-repeat;
 	}
 
 #setting_pannel {

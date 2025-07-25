@@ -149,7 +149,7 @@ function renderRoomsAndUsers(data) {
 
 function fetchLoungeData() {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'lounge?getLounge=1', true);
+    xhr.open('GET', 'lounge?getLounge=1&_=' + new Date().getTime(), true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             try {

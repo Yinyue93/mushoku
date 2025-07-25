@@ -32,7 +32,6 @@ class Dura_Controller_Lounge extends Dura_Abstract_Controller
             $activeUser = 0;
             foreach ($roomModels as $id => $roomModel) {
                 if ($roomModel['update'] < $roomExpire && !$roomModel['permanent']) {
-                    $roomHandler->delete($id);
                     continue;
                 }
                 // Only keep active users

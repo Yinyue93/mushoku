@@ -2,6 +2,16 @@
     <div class="message_box_inner">
         <form action="#" method="post" id="message">
             <ul class="menu">
+                <li class="upload_image">
+                    <label for="room_image_field" title="Upload Image" id="image_icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                        </svg>
+                    </label>
+                    <input type="file" id="room_image_field" accept="image/*" style="display:none;">
+                </li>
                 <li class="setting">&nbsp;</li>
                 <li class="refresh">&nbsp;</li>
                 <li class="chatlog">&nbsp;</li>
@@ -18,6 +28,7 @@
                 </li>
             </ul>
             <h2><span id="room_name"><?php e($dura['room']['name']) ?></span> (<span id="room_total"><?php e(count($dura['room']['users'])) ?></span>/<span id="room_capacity"><?php e($dura['room']['limit']) ?></span>)</h2>
+
             <div class="message_area">
                 <div class="user_profile">
                     <img src="<?php e($dura['user']['avatar']) ?>" alt="<?php e($dura['user']['name']) ?>" />
@@ -118,17 +129,20 @@
         <div class="talk system" id="<?php e($talk['id']) ?>"><?php e($talk['message']) ?></div>
         <?php else: ?>
         <dl class="talk <?php e($talk['icon']) ?>" id="<?php e($talk['id']) ?>">
-            <?php if ( $talk['code'] != '' ) : ?>
-            <dt title="<?php e($talk['code']) ?>"><?php e($talk['name']) ?></dt>
-            <?php else : ?>
-            <dt><?php e($talk['name']) ?></dt>
+    <dt><?php e($talk['name']) ?></dt>
+    <dd title="<?php e($talk['time']) ?>">
+        <div class="bubble">
+            <?php if (!empty($talk['image'])): ?>
+                <p class="body"><img src="<?php e($talk['image']) ?>" style="max-width:300px;max-height:300px;border-radius:8px;" alt="Image"/></p>
+                <?php if (!empty($talk['message']) && $talk['message'] != '[image]'): ?>
+                <div style="margin-top:6px"><?php e($talk['message']) ?></div>
+                <?php endif ?>
+            <?php else: ?>
+                <p class="body"><?php e($talk['message']) ?></p>
             <?php endif ?>
-            <dd title="<?php e($talk['time']) ?>">
-                <div class="bubble">
-                    <p class="body"><?php e($talk['message']) ?></p>
-                </div>
-            </dd>
-        </dl>
+        </div>
+    </dd>
+</dl>
         <?php endif ?>
         <?php endforeach ?>
     </div>
@@ -212,6 +226,194 @@
         }
     });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Logout button (unchanged)
+    var logoutBtn = document.getElementById('logout_btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/room', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        window.location.reload();
+                    } else {
+                        alert('Logout failed.');
+                    }
+                }
+            };
+            xhr.send('logout=1');
+        });
+    }
+
+    // Image upload logic:
+    const fileInput = document.getElementById('room_image_field');
+    const imageIcon = document.getElementById('image_icon');
+
+    if (fileInput && imageIcon) {
+        imageIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Accept only images, max 3MB
+            if (!file.type.match(/^image\//)) {
+                alert('Only image files are allowed!');
+                fileInput.value = '';
+                return;
+            }
+            if (file.size > 3 * 1024 * 1024) {
+                alert('Image is too large (max 3MB).');
+                fileInput.value = '';
+                return;
+            }
+
+            // Upload
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('upload_room_image', '1');
+
+            fetch('/room', {
+                method: 'POST',
+                body: formData
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.success && data.url) {
+                    // Show image in chat instantly:
+                    addImageToChat(data.url, data.id);
+                } else {
+                    alert(data.error || 'Image upload failed.');
+                }
+                fileInput.value = '';
+            })
+            .catch(() => {
+                alert('Could not upload image.');
+                fileInput.value = '';
+            });
+        });
+    }
+
+    // Helper: Insert image message into chat (top of chat)
+    function addImageToChat(url, id) {
+        const talks = document.getElementById('talks');
+        if (!talks) return;
+
+        // Use correct user info:
+        const userNameElem = document.getElementById('user_name');
+        const userIconElem = document.getElementById('user_icon');
+        const userName = userNameElem ? userNameElem.textContent : 'You';
+        const userIcon = userIconElem ? userIconElem.textContent : '';
+        const now = new Date();
+
+        // Use the same markup and class structure as polling code:
+        const dl = document.createElement('dl');
+        dl.className = 'talk ' + userIcon;
+        dl.id = id;
+
+        const dt = document.createElement('dt');
+        dt.textContent = userName;
+
+        const dd = document.createElement('dd');
+        dd.title = now.toLocaleString();
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+
+        // The chat image
+        const p = document.createElement('p');
+        p.className = 'body';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Image';
+        img.style.maxWidth = '300px';
+        img.style.maxHeight = '300px';
+        img.style.borderRadius = '8px';
+
+        p.appendChild(img);
+        bubble.appendChild(p);
+        dd.appendChild(bubble);
+
+        dl.appendChild(dt);
+        dl.appendChild(dd);
+
+        // Prepend to chat (top)
+        talks.insertBefore(dl, talks.firstChild);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Delegate click for all images in chat bubbles
+    document.getElementById('talks').addEventListener('click', function(e) {
+        if (e.target && e.target.tagName === 'IMG') {
+            const src = e.target.src;
+            const lightbox = document.getElementById('image_lightbox');
+            const lightboxImg = document.getElementById('lightbox_img');
+            lightboxImg.src = src;
+            lightbox.style.display = 'flex';
+        }
+    });
+
+    // Close lightbox on background click
+    document.getElementById('image_lightbox').addEventListener('click', function(e) {
+        // Only close if background is clicked (not the image)
+        if (e.target === this || e.target.className === 'lightbox_bg') {
+            this.style.display = 'none';
+            document.getElementById('lightbox_img').src = '';
+        }
+    });
+
+    // Optional: close on Esc key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('image_lightbox').style.display = 'none';
+            document.getElementById('lightbox_img').src = '';
+        }
+    });
+});
+
+</script>
+
+
 <div id="pagetop">
     <a href="#"><img src="<?php e(DURA_URL) ?>/css/pagetop.gif" alt="JUMP" /></a>
+</div>
+
+<style>
+    #image_lightbox {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#image_lightbox .lightbox_bg {
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8);
+}
+#image_lightbox img {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.7);
+    z-index: 1;
+}
+
+</style>
+
+<div id="image_lightbox" style="display:none;">
+    <div class="lightbox_bg"></div>
+    <img id="lightbox_img" src="" alt="Large preview">
 </div>

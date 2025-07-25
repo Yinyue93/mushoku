@@ -56,7 +56,39 @@ class Dura_Class_JsonHandler
 	public function delete($id)
 	{
 		$file = $this->getFilePath($id);
-		return @unlink($file);
+		$result = @unlink($file);
+		
+		// If this is a room deletion, also remove the associated upload directory
+		if ($result && $this->fileName === 'room') {
+			$uploadDir = dirname(dirname(__DIR__)) . '/uploads/room_' . $id;
+			if (is_dir($uploadDir)) {
+				$this->_removeDirectory($uploadDir);
+			}
+		}
+		
+		return $result;
+	}
+	
+	/**
+	 * Recursively remove a directory and all its contents
+	 */
+	private function _removeDirectory($dir)
+	{
+		if (!is_dir($dir)) {
+			return false;
+		}
+		
+		$files = array_diff(scandir($dir), array('.', '..'));
+		foreach ($files as $file) {
+			$path = $dir . '/' . $file;
+			if (is_dir($path)) {
+				$this->_removeDirectory($path);
+			} else {
+				@unlink($path);
+			}
+		}
+		
+		return @rmdir($dir);
 	}
 
 	public function getFilePath($id)
