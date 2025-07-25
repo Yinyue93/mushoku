@@ -51,6 +51,7 @@ return array(
 	"DOWNLOAD" => "DOWNLOAD",
 	"DELETE" => "DELETE",
 	"Room has been deleted." => "Room has been deleted.",
+	"Room was deleted due to inactivity." => "Room was deleted due to inactivity.",
 	"Failed deleting the room." => "Failed deleting the room.",
 	"Room not found." => "Room not found.",
 	"Room is full." => "Room is full.",

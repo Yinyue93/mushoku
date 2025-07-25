@@ -624,7 +624,34 @@ jQuery(function($)
 
         // --- IMAGE HANDLING --- //
         if (image) {
-            window.location.reload();
+            // Handle image messages without bubble wrapper
+            var content = '<dl class="talk ' + icon + '" id="' + id + '">';
+            content += '<dt' + (code.length > 0 ? ' title="' + code + '"' : '') + '>' + name + '</dt>';
+            content += '<dd title="' + time + '">';
+            content += '<img src="' + image + '" style="max-width:300px;max-height:300px;border-radius:8px;display:block;margin-left:15px;" alt="Image"/>';
+            if (message && message !== '[image]') {
+                content += '<div style="margin-top:6px;margin-left:15px;">' + message + '</div>';
+            }
+            content += '</dd></dl>';
+            talksElement.prepend(content);
+            $("#talks_box .talk dt:first").tipTip({maxWidth: "auto", edgeOffset: 5, defaultPosition: "top"});
+            writeChatLog(name, message || '[image]');
+            options = {iconUrl: duraUrl + "/css/icon/" + icon + ".png"};
+            
+            if (!isWindowActive && isUseNotification && isNotifyMessage) {
+                notificationUID = GUID();
+                var defaults = {
+                    title: unescapeHTML(name),
+                    body: '[Image]',
+                    tag: notificationUID,
+                    timeout: 10000,
+                    onclick: function () { window.focus(); }
+                };
+                options = $.extend({}, defaults, options);
+                $.notification(options);
+            }
+            weepMessages();
+            return;
         }
 
         // --- (rest of original writeMessage function as before) ---
@@ -852,6 +879,11 @@ jQuery(function($)
 		{
 			isLoggedOut = true;
 			alert(t("Login error."));
+		}
+		else if ( error == 4 )
+		{
+			isLoggedOut = true;
+			alert(t("Room was deleted due to inactivity."));
 		}
 
 		location.href = duraUrl;

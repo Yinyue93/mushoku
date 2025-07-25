@@ -131,16 +131,16 @@
         <dl class="talk <?php e($talk['icon']) ?>" id="<?php e($talk['id']) ?>">
     <dt><?php e($talk['name']) ?></dt>
     <dd title="<?php e($talk['time']) ?>">
-        <div class="bubble">
-            <?php if (!empty($talk['image'])): ?>
-                <p class="body"><img src="<?php e($talk['image']) ?>" style="max-width:300px;max-height:300px;border-radius:8px;" alt="Image"/></p>
-                <?php if (!empty($talk['message']) && $talk['message'] != '[image]'): ?>
-                <div style="margin-top:6px"><?php e($talk['message']) ?></div>
-                <?php endif ?>
-            <?php else: ?>
-                <p class="body"><?php e($talk['message']) ?></p>
+        <?php if (!empty($talk['image'])): ?>
+            <img src="<?php e($talk['image']) ?>" style="max-width:300px;max-height:300px;border-radius:8px;display:block;margin-left:15px;" alt="Image"/>
+            <?php if (!empty($talk['message']) && $talk['message'] != '[image]'): ?>
+            <div style="margin-top:6px;margin-left:15px;"><?php e($talk['message']) ?></div>
             <?php endif ?>
-        </div>
+        <?php else: ?>
+            <div class="bubble">
+                <p class="body"><?php e($talk['message']) ?></p>
+            </div>
+        <?php endif ?>
     </dd>
 </dl>
         <?php endif ?>
@@ -325,23 +325,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const dd = document.createElement('dd');
         dd.title = now.toLocaleString();
 
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-
-        // The chat image
-        const p = document.createElement('p');
-        p.className = 'body';
-
+        // No bubble wrapper for images - place image directly in dd
         const img = document.createElement('img');
         img.src = url;
         img.alt = 'Image';
         img.style.maxWidth = '300px';
         img.style.maxHeight = '300px';
         img.style.borderRadius = '8px';
+        img.style.display = 'block';
+        img.style.marginLeft = '15px'; // Align with bubble content
 
-        p.appendChild(img);
-        bubble.appendChild(p);
-        dd.appendChild(bubble);
+        dd.appendChild(img);
 
         dl.appendChild(dt);
         dl.appendChild(dd);

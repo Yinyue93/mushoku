@@ -250,6 +250,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->_weepTalk();
 
+		// Update room activity time
+		$this->roomModel['update'] = time();
+
 		$this->roomHandler->save($this->id, $this->roomModel);
 
 		Dura_Class_RoomSession::create($this->id);
@@ -285,6 +288,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 			$this->_weepTalk();
 
+			// Update room activity time
+			$this->roomModel['update'] = time();
+
 			$this->roomHandler->save($this->id, $this->roomModel);
 		}
 		else
@@ -299,6 +305,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 				$this->_npcRoomEmpty();
 
 				$this->_weepTalk();
+
+				// Update room activity time
+				$this->roomModel['update'] = time();
 
 				$this->roomHandler->save($this->id, $this->roomModel);
 			}
@@ -452,6 +461,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 		}
 		unset($user);
 
+		// Update room activity time
+		$this->roomModel['update'] = time();
+
 		$this->_weepTalk();
 
 		if ( !empty($this->roomModel['whispers']) )
@@ -514,8 +526,20 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 			}
 		}
 
+		// Clean up expired rooms before reloading
+		$roomDeletedForInactivity = $this->_cleanupExpiredRooms();
+
 		// Reload room data.
 		$this->roomModel = $this->roomHandler->load($this->id);
+
+		// Check if current room was deleted for inactivity
+		if ($roomDeletedForInactivity && !$this->roomModel) {
+			Dura_Class_RoomSession::delete();
+			
+			// Room deleted for inactivity
+			header('Content-Type: application/json; charset=UTF-8');
+			die(json_encode(array('error' => 4, 'message' => 'Room was deleted due to inactivity')));
+		}
 
 		$userId = Dura::user()->getId();
 		$isLogin = false;
@@ -1442,5 +1466,28 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
             'id'      => $talk['id'],
         ]);
     }
+
+ protected function _cleanupExpiredRooms()
+ {
+  $roomHandler = new Dura_Model_RoomHandler;
+  $roomModels = $roomHandler->loadAll();
+
+  $roomExpire = time() - DURA_CHAT_ROOM_EXPIRE;
+  $currentRoomDeleted = false;
+
+  foreach ( $roomModels as $id => $roomModel )
+  {
+   if ( $roomModel['update'] < $roomExpire && !$roomModel['permanent'] )
+   {
+    if ($id == $this->id) {
+     $currentRoomDeleted = true;
+    }
+    $roomHandler->delete($id);
+   }
+  }
+
+  unset($roomHandler, $roomModels);
+  return $currentRoomDeleted;
+ }
 
 }
