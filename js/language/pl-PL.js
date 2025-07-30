@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Można zatrzymać wysyłanie tej samej wiadomości? Jeśli klikniesz przycisk \"Anuluj\" , można wysłać go ponownie.",
 	"Session time out." : "Odłączony.",
-	"Room was deleted." : "Pokój nie został odnaleziony.",
+	"Room was deleted." : "Pokój usunięty z powodu braku aktywności.",
 	"Login error." : "Błąd logowania.",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

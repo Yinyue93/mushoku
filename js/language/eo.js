@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Ĉu vi volas resendi saman mesaĝon? Alklaku “Nuligi” jeskaze.",
 	"Session time out." : "Malkonektiĝas",
-	"Room was deleted." : "La ĉambro estas forigita",
+	"Room was deleted." : "Ĉambro forigita pro neaktiveco.",
 	"Login error." : "Okazas eraro dum ensalutado",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

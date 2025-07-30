@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Maaari mo bang itigil ang pagpapadala ng parehong mensahe? Kung i-kiklik mo ang pindutang pang kansela, maaari mo na uling maipadala ang parehong mensahe.",
 	"Session time out." : "Naputol ang kuneksyon.",
-	"Room was deleted." : "Hindi matagpuan ang kwarto.",
+	"Room was deleted." : "Tinanggal ang silid dahil sa kawalan ng aktibidad.",
 	"Login error." : "Nagkaroon ng problema dahil sa naputol ang iyong kuneksyon.",
 	"Server error." : "Error: Nagkaproblema ang serber. Pakiulit na lamang muli.",
 	"N/A" : "N/A",

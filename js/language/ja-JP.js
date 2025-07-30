@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "連続送信を中止しますか？「キャンセル」を押すと再送信します。",
 	"Session time out." : "接続が切れました。",
-	"Room was deleted." : "削除されたなどの理由で部屋が見つかりません。",
+	"Room was deleted." : "非アクティブのため部屋が削除されました。",
 	"Login error." : "ログインエラー：接続が切れました。",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",
