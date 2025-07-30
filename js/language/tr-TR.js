@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Aynı mesajı göndermeyi durduracakmısın? Eğer 'İptal' e basarsan, bir daha gönderebilirsin.",
 	"Session time out." : "Bağlantı zaman aşımına uğradı.",
-	"Room was deleted." : "Oda silindi..",
+	"Room was deleted." : "Oda hareketsizlik nedeniyle silindi.",
 	"Login error." : "Hata: Bağlantı kesildi.",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

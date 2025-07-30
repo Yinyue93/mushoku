@@ -579,6 +579,9 @@ class Dura_Controller_Room extends Dura_Abstract_Controller
 
 		$this->roomModel['error'] = 0;
 
+		// Fix by Claude: Don't save anything during polling to allow room expiration
+		// Users will be cleaned up by the existing user expiration logic
+
         if (!empty($this->roomModel['bans'])) {
             foreach ( $this->roomModel['bans'] as &$ban )
 		    {

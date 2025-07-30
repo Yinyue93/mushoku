@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "是否確定發送相同訊息？按「取消」後重複發送。",
 	"Session time out." : "已中斷連線。",
-	"Room was deleted." : "部屋已被刪除。",
+	"Room was deleted." : "房間因不活躍而被刪除。",
 	"Login error." : "登入錯誤：已中斷連線。",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

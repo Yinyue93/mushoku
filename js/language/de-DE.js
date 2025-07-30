@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Hoerst du auf immer die selbe Nachricht zu schreiben ? Wenn du auf 'Abbruch' klickst kannst du sie erneut senden.",
 	"Session time out." : "Verbindung getrennt.",
-	"Room was deleted." : "Chat Room wurde nicht gefunden.",
+	"Room was deleted." : "Raum wegen Inaktivität gelöscht.",
 	"Login error." : "Fehler: Verbindung getrennt.",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

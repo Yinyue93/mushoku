@@ -1,7 +1,7 @@
 ﻿Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "是否确认发送相同的信息？按「取消」继续发送。",
 	"Session time out." : "与服务器的连接被断开。可能是您的网络问题",
-	"Room was deleted." : "房间已被删除",
+	"Room was deleted." : "房间因不活跃而被删除。",
 	"Login error." : "登陆错误：与服务器连接超时。",
 	"Server error." : "Error: Script failure. Please try again.",
 	"N/A" : "N/A",

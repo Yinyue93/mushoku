@@ -1,7 +1,7 @@
 Translator.catalog = {
 	"Will you stop sending the same message? If you click 'Cancel' you can send it again." : "Может быть вы перестанете посылать одинаковые сообщения? Если вы нажмёте \"Отмена\", вы сможете послать его опять.",
 	"Session time out." : "Обрыв связи",
-	"Room was deleted." : "Комната не найдена.",
+	"Room was deleted." : "Комната удалена из-за неактивности.",
 	"Login error." : "Ошибка: Обрыв связи.",
 	"Server error." : "Произошла ошибка. Попробуйте еще раз.",
 	"N/A" : "N/A",
